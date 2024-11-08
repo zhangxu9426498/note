@@ -1,16 +1,18 @@
-git config --global user.name 设置用户签名
-git config --global user.email 设置用户签名
-git init  初始化本地仓库
-git status 查看本地库状态
-git add 文件名 添加暂存区
-git commit -m "日志信息" 文件名 提交本地库 形成历史版本
-git reflog 查看历史纪录
-git reset --hard 版本号  版本穿梭
-git branch 分支名  创建分支
-git branch -v 查看分支
-git checkout 分支名 切换分支
-git merge 分支名  把指定的分支合并到当前分支上（必须在主分支合并）
-git push <链接or链接别名> master
-git remote -v   查看所有远程地址别名
-git remote add 别名 远程地址
-git通过https拉取如果证书报错可以关闭git里面的证书认证进行拉取
+常见命令：
+git config --global user.name #设置用户签名
+git config --global user.email #设置用户签名
+git init  #初始化本地仓库
+git status #查看本地库状态
+git add 文件名 #添加暂存区
+git commit -m "日志信息" 文件名 #提交本地库 形成历史版本
+git reflog #查看历史纪录
+git reset --hard 版本号  #版本穿梭
+git branch 分支名  #创建分支
+git branch -v #查看分支
+git checkout 分支名 #切换分支
+git merge 分支名  #把指定的分支合并到当前分支上（必须在主分支合并）
+git push <链接or链接别名> master  #推送到远程仓库
+git remote -v   #查看所有远程地址别名
+git remote add 别名 #远程地址
+
+常见错误：git通过https拉取如果证书报错可以关闭git里面的证书认证进行拉取
