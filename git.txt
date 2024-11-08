@@ -13,4 +13,4 @@ git merge 分支名  把指定的分支合并到当前分支上（必须在主�
 git push <链接or链接别名> master
 git remote -v   查看所有远程地址别名
 git remote add 别名 远程地址
-ll
+git通过https拉取如果证书报错可以关闭git里面的证书认证进行拉取
