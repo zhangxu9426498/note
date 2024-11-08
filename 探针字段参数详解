@@ -1,0 +1,35 @@
+readinessProbe:                                             #就绪探针用于确定pod是否准备好接入流量如果pod检查失败会拒绝流量进入
+            httpGet:                                        #指定httpget请求的方式进行探测
+              path: /els/base/heartBeat/noToken/check       #要访问的http路径适用于该目录下有提供健康检查的程序
+              port: http                                    #要访问的端口的名字也可以是在service中定义的端口号
+              scheme: HTTP                                  #探测时使用http协议进行探测只适用于httpget探测
+            initialDelaySeconds: 5                          #pod启动5秒之后再开始健康检查
+            timeoutSeconds: 3                               #在3秒内没有收到响应则探针检查失败
+            periodSeconds: 3                                #一次探测结束后等待3秒再进行下一次探测
+            successThreshold: 2                             #探针检查连续成功2次之后pod被标记就绪代表探测成功
+            failureThreshold: 3                             #探针检查连续两次失败之后pod被标记不就绪探测失败
+          livenessProbe:                                    #存活探针用于确定pod是否仍在运行如果探测失败将重启pod
+            httpGet:                                        #同上
+              path: /els/base/heartBeat/noToken/check       #同上
+              port: http                                    #同上
+              scheme: HTTP                                  #同上 
+            initialDelaySeconds: 1200                       #由于有的pod启动缓慢所以需要等pod起来之后进行探测对于存活探针来说这里时间需要设置长一点
+            timeoutSeconds: 3
+            periodSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+补充：如果没有探针检测程序（/els/base/heartBeat/noToken/check这个程序）可以选择使用端口探测
+ivenessProbe:                                               
+          tcpSocket:                                              #使用tcp套接字进行检查
+            port: 8080                                            #检查后端服务的端口号
+---
+快速编写yaml方法：
+help：kubectl后面加help：忘记具体命令用法或参数可以用help进行指导
+dry-run：预先验证命令效果这种模拟执行指令不会对集群产生实际影响，加上-o将结果输出为YAML格式能够快速获取所需的yaml文件
+	kubectl create deployment xu.zhang --image=nginx --replicas=3 -n=test --dry-run（尝试运行不产生影响）=client/server -o yaml > deployment.yaml
+	将创建的deployment的基础模板导入deployment.yaml进行增添功能
+explain：可以在编写YAML时了解资源类型的结构和属性 通过explain掌握资源的所有字段、默认值以及示例的详细信息，可以更好地编写YAML文件
+
+vscode安装YAML和Kubernetes Templates插件
+
+YAML语法检查系统网址：https://codebeautify.org/yaml-validator
