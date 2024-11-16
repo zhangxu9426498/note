@@ -1,0 +1,131 @@
+容器类似轻量级的vm 
+共享操作系统内核 
+容器拥有自己的文件系统、cpu、内存、进程空间等
+容器互相隔离
+docker命令：
+  docker search #检索镜像 看有没有这个镜像（如果需要现在指定版本的镜像直接去dockerhub搜索）
+  docker pull   #下载镜像
+  docker images #查看已经下载好的镜像列表
+  docker rmi    #删除镜像
+  docker run    #运行容器 （-d后台启动 --name给容器起名字 -p端口映射 外部端口:内部端口<用于提供外部服务让外部能访问到> -v 宿主机文件路径:容器内文件路径 #将宿主机的目录映射到容器内的目录可以在宿主机进行修改配置文件）指定端口映射时外部端口不能重复 内部端口可以重复
+  卷映射-v 目录名:容器内配置文件路径 卷映射不能指定目录路径
+  docker volume ls   #查看所有的卷
+  docker volume create   #创建卷（创建的所有卷都会放在宿主机中的/var/lib/docker/volume下）
+  docker volume inspect   #查看卷的详细信息
+  docker stop   #停止容器
+  docker start  #启动容器
+  docker restart  #重启容器
+  docker status #查看容器状态
+  docker logs   #查看日志
+  docker exec -it 容器 /bin/bsah   #进入容器用命令形式进行交互
+  docker rm     #删除容器
+  docker ps     #查看运行中的容器（-a查看所有容器）（-aq打印所有容器id）
+  docker stats  #查看容器cpu内存等占用情况
+  docker commit 容器 参数 被打包成镜像的名字标签等 #把整个容器以及容器内所有变化打包成一个镜像
+  docker save   #把镜像保存成一个文件（-o 将镜像写出为tar包后边跟上tar包的名字）
+  docker load   #把镜像的tar包变成镜像
+  将自己的镜像分享到社区：
+  docker login   #登陆社区dockerhub
+  docker tag
+  docker push 原镜像名 用户名/镜像名:版本号
+  
+  在安装docker时里面会生成一个默认网络docker，docker每启动一个容器都会为该容器分配一个固定IP并且该容器会被加入到默认网络里边，使用容器IP+容器端口容器之间就可以互相访问了
+  但是容器内IP会发生变化容器重启IP可能发生变化可以使用域名访问：
+  由于docker0默认不支持主机域名 所以首先自定义一个网络 容器名就是一个稳定的域名
+  docker network create mynet   #创建网络
+  docker network ls   #列举网络列表
+  docker run --network mynet   #使容器加入自定义网络
+
+  docker compose：
+  docker compose up -d   #以后台方式将dockercompose的yaml文件中的所有应用第一次上线
+  docker compose down    #将dockerpose的yaml文件中的应用批量下线
+  docker compose start   #将已经上线过的但是由于一些原因停掉的应用启动起来
+  docker compose stop    #停止应用
+  docker compose scale 应用=3   #将应用的实例数扩容到3
+  docker rm -f $(docker ps -ap)   #批量删除容器
+  dockercompose顶级元素：
+    name 名字
+    service 服务
+    networks 网络
+    volumes 卷
+    configs 配置
+    secrets 密钥
+  示例：
+  name: myblog     #部署的整个应用的名字
+  services:        #所要启动的应用
+    mysql:
+      container_name: mysql    #容器的名字
+      image: mysql:8.0   #所用的镜像
+      ports:      #要暴露的端口可以暴露多个
+        - "3306:3306"
+      environment:   #定义环境变量
+        - MYSQL_ROOT_PASSWORD=123456
+        - MYSQL_DATABASE=wordpress
+      volumes:    #表示要挂的卷
+        - mysql-data:/var/lib/mysql
+        - /app/config:/etc/mysql/conf.d
+      restart: always    #重启策略
+      networks:          #自定义网络
+        - bolg
+    wordpress：
+      containers: wordpress
+      image: wordpress:latest
+      ports:
+        - "8080:80"
+      environment:
+        - WORDPRESS_DB_HOST=mysql   #指定mysql主机域名由于加入了自定义网络所以mysql域名就是容器名
+        - WORDPRESS_DB_USER=root    #指定root用户登录mysql
+        - WORDPRESS_DB_PASSWORD=123456
+        - WORDPRESS_DB_NAME=wordpress   #存放wordpress的库名叫wordpress
+      volumes:
+        - wordpress:/var/www/html   #卷映射
+      restart: always
+      networks:
+        - blog
+      depends_on:      #表示这个应用启动要依赖于谁 因为wordpress需要连接数据库所以需要先让mysql先启动之后再启动wordpress去连接数据库
+        - mysql  
+  volumes:    #声明卷映射的卷名还可以配置卷的详细信息比如：让卷只读 可读可写等
+    mysql-data:
+    wordpress:
+  networks:   #声明网络并可以对网络进行配置
+    blog:   
+
+
+dockerfile制作镜像：
+dockerfile里的主要内容：基础环境（linux windows debian等）软件包（jar包、war包）软件包启动命令（Java -jar jar包）
+常见指令：
+  FROM     #指定镜像基础环境
+  RUN      #运行自定义命令
+  CMD      #容器启动命令或参数
+  LABEL    #自定义标签
+  EXPOSE   #指定暴露端口
+  ENV      #环境变量
+  ADD      #添加文件到镜像（可自动解压）
+  COPY     #复制文件到镜像
+  ENTRYPOINT  #容器固定启动命令
+  VOLUME   #数据卷
+  USER     #指定用户和用户组
+  WORKDIR  #指定默认工作目录
+  ARG      #指定构建参数
+
+示例场景：xian将一个jar包做成镜像
+ 先上传jar包
+ FROM openjdk:17      #表示运行该软件包所需要的环境为openjdk17（也可以将基础环境设置为linux操作系统然后通过RUN指令用安装openjdk17）
+
+ LABEL author=zhangxu  #指定这个镜像作者为zhangxu
+
+ COPY app.jar /app.jar  #将宿主机上的jar包拷贝到镜像内的根目录下
+ EXPOSE 8080            #指定镜像里面启动的软件端口为8080
+ ENTRYPORINT ["java"."-jar"."/app.jar"]     #用数组形式指定镜像内启动软件包的命令 对应linux系统中启动软件包命令：java -jar /app.jar
+ 最后docker build -f Docerfile -t myapp:v1（-t指定镜像的名字）.（.表示./代表构建的整个上下文目录为当前目录 当前目录下需要有一个app.jar的软件包COPY指令才能将app.jar复制到镜像内的/app.jar）
+
+镜像分层存储机制：
+   docker镜像构建时dockerfile中的每一行指令都可能下载一些内容或者修改文件系统中的一些东西 所以每一行指令都会产生一个存储层 这样可以减轻磁盘存储压力
+
+   如果要构建两个应用app1和app2 两个应用都有自己的代码和不同的依赖关系 两个应用都是基于openjdk17 openjdk安装在centos7系统下 采用分层存储的话 openjdk和centos7是两个应用公用的这两个存储在一个地方
+然后这两个镜像还有不同的地方 不同的内容再存储到一个地方 等于两个镜像公用底层的openjdk和centos7 两个镜像只需要存储他们增量的部分 相当于git只存储代码分支增量改变的部分
+如果分开存储就相当于多存储了一份openjdk和centos7的基础环境 但这两个环境是公用的都有的
+
+  要启动一个容器 这个容器基于某个镜像 镜像已经在磁盘内存储 整个镜像存储的内容叫镜像层是R/O是只读的 如果容器按照这个镜像启动容器要对镜像里面的内容有所修改 
+因为镜像层是只读的所以容器要单独开一层存储R/W可读可写 容器将所有的修改都放到容器层 所以为什么我们将容器删除之后数据全都丢了 因为容器将所有数据都写到了容器层 因为容器
+层是容器启动时自己单独开的可读可写层 所以容器删完这个层也就没有了 如果基于这个镜像启动多个容器那么每个容器都会开自己的读写层也是容器隔离机制的一种 所以推荐将容器内的数据挂载到外边
